@@ -1,0 +1,12 @@
+# Settings for libraries used by specific LAMMPS packages
+# this file is auto-edited when those packages are included/excluded
+
+PKG_INC =   -DLAMMPS_VERSION_NUMBER= -I/root/software/deepmd-kit/source/build/c_interfere/include/   -DLAMMPS_VERSION_NUMBER=20230802 -I/root/software/deepmd-kit/source/build/c_interfere/include/ 
+PKG_PATH =   -L/root/software/deepmd-kit/dp/lib/python3.10/site-packages/tensorflow -L/root/software/deepmd-kit/source/build/c_interfere/lib  -L/root/software/deepmd-kit/dp/lib/python3.10/site-packages/tensorflow -L/root/software/deepmd-kit/source/build/c_interfere/lib
+PKG_LIB =   -Wl,--no-as-needed -ldeepmd_c -Wl,-rpath=/root/software/deepmd-kit/dp/lib/python3.10/site-packages/tensorflow -Wl,-rpath=/root/software/deepmd-kit/source/build/c_interfere/lib  -Wl,--no-as-needed -ldeepmd_c -Wl,-rpath=/root/software/deepmd-kit/dp/lib/python3.10/site-packages/tensorflow -Wl,-rpath=/root/software/deepmd-kit/source/build/c_interfere/lib
+PKG_CPP_DEPENDS = 
+PKG_LINK_DEPENDS = 
+
+PKG_SYSINC = 
+PKG_SYSLIB = 
+PKG_SYSPATH = 
