@@ -1,0 +1,49 @@
+variable        NSTEPS          equal 300000
+variable        THERMO_FREQ     equal 10
+variable        DUMP_FREQ       equal 10
+variable        TEMP            equal 300
+variable        mu              equal -2
+variable        TAU_T           equal 0.1
+variable        TAU_mu          equal 0.1
+
+units           metal
+boundary        f p p
+atom_style      atomic
+atom_modify     map array
+
+neighbor        1.0 bin
+
+box             tilt large
+read_data_new   test.lmp
+change_box      all triclinic
+
+mass            1 195.000000
+mass            2 1.000000
+mass	   	    3 16.000000
+
+variable dEdN equal dE_dN
+
+pair_style	deepmdnew compress_11.0.pb fparam 0
+pair_coeff      * *
+
+group layer1 id 1:100:4
+group layer2 id 2:100:4
+group bottom union layer1 layer2
+group move subtract all bottom
+group Hads id 101:124
+velocity move create ${TEMP} 644613
+compute movetemp move temp
+compute bottomtemp bottom temp
+
+fix             1 all uvt temp ${TEMP} ${TEMP} ${TAU_T} mu ${mu} ${mu} ${TAU_mu}
+fix_modify      1 temp movetemp
+fix             2 bottom setforce 0.0 0.0 0.0
+fix             3 all wall/reflect xhi 17.462841        # 33*0.529177
+fix             4 Hads wall/reflect xhi 8.6785028       # 16.4*0.529177  
+velocity        bottom set 0.0 0.0 0.0
+thermo          ${THERMO_FREQ}
+thermo_style    custom step pe ke etotal temp Ne c_movetemp c_bottomtemp v_dEdN
+
+dump		1 all custom ${DUMP_FREQ} dump/*.dump id type x y z 
+timestep        0.000500
+run             ${NSTEPS} upto
