@@ -1,0 +1,57 @@
+variable ibead uloop 32 pad
+variable        NSTEPS          equal 40000
+variable        THERMO_FREQ     equal 10
+variable        DUMP_FREQ       equal 10
+variable        RESTART_FREQ    equal 2000
+variable        TEMP            equal 300
+variable        MU              equal -2.5
+variable        TAU_T           equal 0.10000
+variable        TAU_U           equal 0.10000
+
+units           metal
+boundary        f p p
+atom_style      atomic
+atom_modify     map array
+
+neighbor        1.0 bin
+
+box             tilt large
+read_data_new   test.lmp
+change_box      all triclinic
+
+mass            1 195.000000
+mass            2 1.000000
+mass	   	    3 16.000000
+
+variable dEdN equal dE_dN
+
+pair_style	deepmdnew compress_11.0.pb fparam 0
+pair_coeff      * *
+
+group layer1 id 1:100:4
+group layer2 id 2:100:4
+group bottom union layer1 layer2
+group move subtract all bottom
+group Hads id 101:124
+group Hatoms id 125:197
+velocity move create ${TEMP} 451722
+compute movetemp move temp
+compute bottomtemp bottom temp
+
+fix         1 move pimd/langevin method nmpimd fmmode physical ensemble uvt integrator obabo thermostat NHC temp ${TEMP} Tdamp ${TAU_T} mu ${MU} Udamp ${TAU_U} tchain 5
+fix         2 all wall/reflect xhi 17.462841     # 33*0.529177
+fix         3 Hads wall/reflect xhi 8.6785028     # 16.4*0.529177
+fix         4 bottom setforce 0.0 0.0 0.0
+velocity    bottom set 0.0 0.0 0.0
+
+thermo          ${THERMO_FREQ}
+thermo_style    custom step temp c_movetemp f_1[1*4] f_1[21*30] f_1[33*34] f_1[31*32] v_dEdN
+thermo_modify norm no format line "%d %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f"
+
+dump		    1 all custom ${DUMP_FREQ} dump/${ibead}_final*.dump id type x y z vx vy vz
+
+restart         ${RESTART_FREQ} ${ibead}_system.restart
+
+timestep        0.000500
+run             ${NSTEPS} upto
+write_data      ${ibead}.lmp
